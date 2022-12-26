@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {CellStateEnum} from './models/cell-state.enum';
 import {GameFlat} from './models/game-flat';
 import {HttpClient} from '@angular/common/http';
-import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
+import {DomSanitizer} from '@angular/platform-browser';
 import {Worker} from './models/worker';
 
 @Component({
@@ -20,8 +20,11 @@ export class AppComponent implements OnInit {
   defaultFileLoaded: boolean = false;
   defaultFileData: any = null;
   worker?: Worker;
+  workerJob?: any;
 
-  workerTimeout = 500;
+  workerTimeout = 100;
+  workerTurnDirection: 'left' | 'right' = 'right';
+  workerLoopFuse = 0;
 
   constructor(private httpClient: HttpClient, private sanitizer: DomSanitizer ) {
   }
@@ -80,6 +83,10 @@ export class AppComponent implements OnInit {
   createGame() {
     this.worker = null;
     this.gameFlat = new GameFlat(this.flatConfig);
+
+    if (this.workerJob) {
+      clearInterval(this.workerJob);
+    }
   }
 
   loadDefaultConfigFile() {
@@ -115,11 +122,20 @@ export class AppComponent implements OnInit {
     if (!this.gameFlat) {
       return;
     }
-    this.worker = new Worker(this.gameFlat);
+    this.worker = new Worker(this.gameFlat, this.workerTurnDirection);
+    this.workerLoopFuse = 0;
+
+    this.workerJob = setInterval(this.nextStep.bind(this), this.workerTimeout);
   }
 
   nextStep() {
+    this.workerLoopFuse++;
+
     this.worker.step1();
     this.worker.calcNextDirRight();
+
+    if (this.workerLoopFuse >= this.flatConfig[0].length * this.flatConfig.length || this.worker.completed) {
+      clearInterval(this.workerJob);
+    }
   }
 }

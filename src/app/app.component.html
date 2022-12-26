@@ -19,16 +19,33 @@
   <div class="tools-panel">
     <div class="worker-config" *ngIf="!worker">
       <div>
-        <label for="timeout">Timeout:</label>
+        <label for="timeout">Timeout(ms):</label>
         <input id="timeout" type="number" placeholder="timeout" [(ngModel)]="workerTimeout">
+      </div>
+
+      <label>Choose 1 turn direction:</label>
+      <div>
+        <input type="radio" id="leftTurn"
+               name="turnDirection" value="left" [(ngModel)]="workerTurnDirection">
+        <label for="leftTurn">Left</label>
+
+        <input type="radio" id="rightTurn"
+               name="turnDirection" value="right" [(ngModel)]="workerTurnDirection">
+        <label for="rightTurn">Right</label>
       </div>
 
       <button (click)="createWorker()">Start worker</button>
     </div>
 
     <div class="game-config" *ngIf="worker">
-      <button (click)="nextStep()" *ngIf="!worker.completed">Next step</button>
       <button (click)="createGame()">Reset</button>
+
+      <ng-container *ngIf="worker.log">
+        <h2>Log:</h2>
+        <div class="log">
+          <div class="item" *ngFor="let log of worker.log">{{log}}</div>
+        </div>
+      </ng-container>
     </div>
   </div>
 

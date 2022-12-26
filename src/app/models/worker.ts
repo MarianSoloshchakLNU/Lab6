@@ -8,6 +8,10 @@ export class Worker {
   public currentPosition: ICoordinates = {x: 0, y: 0};
   public aim: ICoordinates = {x: 0, y: 0};
 
+  public log: Array<string> = [];
+
+  public turnDirection: 'right' | 'left' = 'right';
+
   get borderLeft() {
     return this.currentPosition.x === 0;
   }
@@ -31,9 +35,9 @@ export class Worker {
       case Direction.xminusyminus:
         return this.cellXYIsFree(this.currentPosition.x - 1, this.currentPosition.y - 1);
       case Direction.yminus:
-          return this.cellXYIsFree(this.currentPosition.x, this.currentPosition.y + 1);
+          return this.cellXYIsFree(this.currentPosition.x, this.currentPosition.y - 1);
       case Direction.xminusyplus:
-        return this.cellXYIsFree(this.currentPosition.x - 1, this.currentPosition.y - 1);
+        return this.cellXYIsFree(this.currentPosition.x - 1, this.currentPosition.y + 1);
       case Direction.xplus:
         return this.cellXYIsFree(this.currentPosition.x + 1, this.currentPosition.y);
       case Direction.xplusyminus:
@@ -56,7 +60,7 @@ export class Worker {
       case Direction.yminus:
         return {x: this.currentPosition.x, y: this.currentPosition.y - 1};
       case Direction.xminusyplus:
-        return {x: this.currentPosition.x - 1, y: this.currentPosition.y = 1};
+        return {x: this.currentPosition.x - 1, y: this.currentPosition.y + 1};
       case Direction.xplus:
         return {x: this.currentPosition.x + 1, y: this.currentPosition.y};
       case Direction.xplusyminus:
@@ -74,7 +78,8 @@ export class Worker {
     return this.currentPosition.x === this.aim.x && this.currentPosition.y === this.aim.y;
   }
 
-  constructor(public flat: GameFlat) {
+  constructor(public flat: GameFlat, initialTurnDirection: 'left' | 'right') {
+    this.turnDirection = initialTurnDirection;
     const startPosition = flat.getStartPosition();
     const finishPosition = flat.getFinishPosition();
     this.setPos(startPosition.x, startPosition.y);
@@ -111,18 +116,55 @@ export class Worker {
     }
   }
 
-  turnRight(angle: number) {
-
+  turnRight(): Direction {
+    switch (this.direction) {
+      case Direction.xminus:
+        return Direction.xminusyminus;
+      case Direction.xminusyminus:
+        return Direction.yminus;
+      case Direction.yminus:
+        return Direction.xplusyminus;
+      case Direction.xplusyminus:
+        return Direction.xplus;
+      case Direction.xplus:
+        return Direction.xplusyplus;
+      case Direction.xplusyplus:
+        return Direction.yplus;
+      case Direction.yplus:
+        return Direction.xminusyplus;
+      case Direction.xminusyplus:
+        return Direction.xminus;
+      default:
+        return this.direction;
+    }
   }
 
-  turnLeft(angle: number) {
-
+  turnLeft(): Direction {
+    switch (this.direction) {
+      case Direction.xminus:
+        return Direction.xminusyplus;
+      case Direction.xminusyplus:
+        return Direction.yplus;
+      case Direction.yplus:
+        return Direction.xplusyplus;
+      case Direction.xplusyplus:
+        return Direction.xplus;
+      case Direction.xplus:
+        return Direction.xplusyminus;
+      case Direction.xplusyminus:
+        return Direction.yminus;
+      case Direction.yminus:
+        return Direction.xminusyminus;
+      case Direction.xminusyminus:
+        return Direction.xminus;
+      default:
+        return this.direction;
+    }
   }
 
   calcNextDirRight() {
-    console.log(Math.abs(this.aim.y - this.currentPosition.y))
-
-    if (this.aim.x !== this.currentPosition.x) {
+    this.log.push('----------------------');
+    if (!this.borderRight) {
       if ((this.aim.x - this.currentPosition.x) >= Math.abs(this.aim.y - this.currentPosition.y)) {
         this.direction = Direction.xplus;
       } else if (this.aim.y < this.currentPosition.y){
@@ -134,15 +176,43 @@ export class Worker {
       this.direction = this.aim.y > this.currentPosition.y ? Direction.yplus : Direction.yminus;
     }
 
-    console.log('----');
-    console.log(this.direction)
-    console.log(this.nextCell);
-    console.log(this.currentPosition);
-    console.log(this.aim);
-    console.log('----');
+    this.log.push('Current position - { x:' + this.currentPosition.x + ', y:' + this.currentPosition.y + ' }');
+    this.log.push('Direction is - ' + this.direction);
+
+    let infinityLoopFuse = 0;
+
+    while (!this.cellFrontIsFree && infinityLoopFuse < 10) {
+      this.log.push('Next cell is disabled, turning ' + this.turnDirection);
+      infinityLoopFuse++;
+
+      if (this.isNextCellOutOfFlat() && this.borderBelow) {
+        this.log.push('switching to left turn');
+        this.turnDirection = 'left';
+      }
+
+      if (this.isNextCellOutOfFlat() && this.borderTop) {
+        this.log.push('switching to right turn');
+        this.turnDirection = 'right';
+      }
+
+      this.direction = this.turnDirection === 'left' ? this.turnLeft() : this.turnRight();
+
+      this.log.push('Direction is - ' + this.direction);
+    }
+
+    this.log.push('Next cell is available');
   }
 
   cellXYIsFree(x: number, y: number) {
-    return this.flat.config[y][x] !== CellStateEnum.Disabled;
+    return (x < this.flat.config[0].length && x >= 0 && y < this.flat.config.length && y >= 0) &&
+      this.flat.config[y][x] !== CellStateEnum.Disabled;
   }
+
+  isNextCellOutOfFlat() {
+    const nextCell = this.nextCell;
+    return nextCell.x >= this.flat.config[0].length || nextCell.x < 0 ||
+      nextCell.y >= this.flat.config.length || nextCell.y < 0;
+  }
+
+
 }
