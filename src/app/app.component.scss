@@ -1,0 +1,47 @@
+.flat-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 0;
+  margin-top: 30px;
+  background: #f6f6f6;
+
+  .flat {
+    border: 1px solid #676767;
+
+    .row {
+      display: flex;
+      border-bottom: 1px solid #676767;
+
+      .cell {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-right: 1px solid #676767;
+        background: #e5e5e5;
+
+        &.disabled {
+          background: #818181;
+        }
+
+        &.start {
+          background: green;
+        }
+
+        &.finish {
+          background: red;
+        }
+
+        &:last-child {
+          border-right: none;
+        }
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
