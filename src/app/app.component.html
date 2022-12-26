@@ -1,4 +1,10 @@
-<input type="file" (change)="onFileChange($event.target)">
+<div class="top-buttons">
+  <input type="file" (change)="onFileChange($event.target)">
+
+  <button *ngIf="defaultFileData" (click)="onDownloadDefaultFile()">Download default file</button>
+</div>
+
+
 
 <div>
   <h3>Loaded {{defaultFileLoaded ? 'default': 'custom'}} file</h3>

@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {CellStateEnum} from './models/cell-state.enum';
 import {GameFlat} from './models/game-flat';
 import {HttpClient} from '@angular/common/http';
+import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -16,8 +17,9 @@ export class AppComponent implements OnInit {
   gameFlat: GameFlat | undefined;
   cellStateEnum = CellStateEnum;
   defaultFileLoaded: boolean = false;
+  defaultFileData: any = null;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(private httpClient: HttpClient, private sanitizer: DomSanitizer ) {
   }
 
   ngOnInit() {
@@ -78,9 +80,21 @@ export class AppComponent implements OnInit {
   loadDefaultConfigFile() {
     this.httpClient.get('assets/config.txt', {responseType: 'text'})
       .subscribe(data => {
+        this.defaultFileData = data;
         this.parseFileDataIntoFlat(data);
         this.defaultFileLoaded = true;
         this.createGame();
       });
+  }
+
+  onDownloadDefaultFile () {
+    const blob = new Blob([this.defaultFileData], { type: 'application/octet-stream' });
+
+
+    const a = document.createElement('a');
+
+    a.download = 'config.txt';
+    a.href = window.URL.createObjectURL(blob);
+    a.click();
   }
 }
