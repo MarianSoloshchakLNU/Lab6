@@ -1,10 +1,27 @@
 .flat-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: space-around;
+  align-items: stretch;
   padding: 60px 0;
   margin-top: 30px;
   background: #f6f6f6;
+
+  .tools-panel {
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    .worker-config, .game-config {
+      display: flex;
+      flex-direction: column;
+
+      >* {
+        margin-bottom: 20px;
+      }
+    }
+  }
 
   .flat {
     border: 1px solid #676767;
@@ -30,8 +47,16 @@
           background: green;
         }
 
+        &.visited {
+          background: blue;
+        }
+
         &.finish {
           background: red;
+        }
+
+        &.completed {
+          background: orange;
         }
 
         &:last-child {
@@ -46,10 +71,19 @@
   }
 }
 
-
 .top-buttons {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   padding: 20px 10px;
+
+  .load-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    >* {
+      margin-right: 10px;
+    }
+  }
 }

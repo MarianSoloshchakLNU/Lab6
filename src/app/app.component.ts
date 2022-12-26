@@ -3,6 +3,7 @@ import {CellStateEnum} from './models/cell-state.enum';
 import {GameFlat} from './models/game-flat';
 import {HttpClient} from '@angular/common/http';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
+import {Worker} from './models/worker';
 
 @Component({
   selector: 'app-root',
@@ -14,10 +15,13 @@ export class AppComponent implements OnInit {
 
   flatConfig: Array<Array<CellStateEnum>> = [];
 
-  gameFlat: GameFlat | undefined;
+  gameFlat?: GameFlat;
   cellStateEnum = CellStateEnum;
   defaultFileLoaded: boolean = false;
   defaultFileData: any = null;
+  worker?: Worker;
+
+  workerTimeout = 500;
 
   constructor(private httpClient: HttpClient, private sanitizer: DomSanitizer ) {
   }
@@ -74,6 +78,7 @@ export class AppComponent implements OnInit {
   }
 
   createGame() {
+    this.worker = null;
     this.gameFlat = new GameFlat(this.flatConfig);
   }
 
@@ -87,6 +92,14 @@ export class AppComponent implements OnInit {
       });
   }
 
+  loadDefaultEmptyConfigFile() {
+    this.httpClient.get('assets/config-empty.txt', {responseType: 'text'})
+      .subscribe(data => {
+        this.parseFileDataIntoFlat(data);
+        this.createGame();
+      });
+  }
+
   onDownloadDefaultFile () {
     const blob = new Blob([this.defaultFileData], { type: 'application/octet-stream' });
 
@@ -96,5 +109,17 @@ export class AppComponent implements OnInit {
     a.download = 'config.txt';
     a.href = window.URL.createObjectURL(blob);
     a.click();
+  }
+
+  createWorker() {
+    if (!this.gameFlat) {
+      return;
+    }
+    this.worker = new Worker(this.gameFlat);
+  }
+
+  nextStep() {
+    this.worker.step1();
+    this.worker.calcNextDirRight();
   }
 }

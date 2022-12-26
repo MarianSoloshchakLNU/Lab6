@@ -1,5 +1,9 @@
 <div class="top-buttons">
-  <input type="file" (change)="onFileChange($event.target)">
+  <div class="load-buttons">
+    <input type="file" (change)="onFileChange($event.target)">
+    <button (click)="loadDefaultConfigFile()">Use default file</button>
+    <button (click)="loadDefaultEmptyConfigFile()">Use default empty file</button>
+  </div>
 
   <button *ngIf="defaultFileData" (click)="onDownloadDefaultFile()">Download default file</button>
 </div>
@@ -12,12 +16,30 @@
 
 
 <div class="flat-container" *ngIf="gameFlat">
+  <div class="tools-panel">
+    <div class="worker-config" *ngIf="!worker">
+      <div>
+        <label for="timeout">Timeout:</label>
+        <input id="timeout" type="number" placeholder="timeout" [(ngModel)]="workerTimeout">
+      </div>
+
+      <button (click)="createWorker()">Start worker</button>
+    </div>
+
+    <div class="game-config" *ngIf="worker">
+      <button (click)="nextStep()" *ngIf="!worker.completed">Next step</button>
+      <button (click)="createGame()">Reset</button>
+    </div>
+  </div>
+
   <div class="flat">
     <div class="row" *ngFor="let row of gameFlat.config">
       <div class="cell"
            [ngClass]="{'disabled': cell === cellStateEnum.Disabled,
            'start': cell === cellStateEnum.Start,
-           'finish': cell === cellStateEnum.Finish}"
+           'visited': cell === cellStateEnum.Visited,
+           'finish': cell === cellStateEnum.Finish,
+           'completed': worker?.completed && cell === cellStateEnum.Visited}"
            *ngFor="let cell of row">
 
       </div>
